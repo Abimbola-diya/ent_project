@@ -1,0 +1,29 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+venv/
+.env
+
+# IDE settings
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python environment files
+*.egg-info/
+*.egg
+
+# Logs
+*.log
+
+# Databases (if using SQLite)
+*.db
+
+# Pytest cache
+.pytest_cache/
