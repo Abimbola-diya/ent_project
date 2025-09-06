@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from enum import Enum
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 
 # ---------- Users ----------
 class UserRole(str, Enum):
@@ -32,6 +32,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+
 # ---------- Problems ----------
 class ProblemCreate(BaseModel):
     laptop_brand: str
@@ -49,6 +50,7 @@ class ProblemOut(BaseModel):
     class Config:
         from_attributes = True
 
+
 # ---------- Steps ----------
 class StepOut(BaseModel):
     step_number: int
@@ -57,6 +59,7 @@ class StepOut(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 # ---------- Troubleshoots ----------
 class TroubleshootCreate(BaseModel):
@@ -72,16 +75,23 @@ class TroubleshootOut(BaseModel):
     class Config:
         from_attributes = True
 
+
 # ---------- Engineers ----------
 class EngineerOut(BaseModel):
     id: int
     name: str
     email: str
-    location: Optional[str]
+    latitude: Optional[float]
+    longitude: Optional[float]
     available_times: Optional[str]  # JSON string
 
     class Config:
         from_attributes = True
+
+class UserLocation(BaseModel):
+    latitude: float
+    longitude: float
+
 
 # ---------- Booking ----------
 class BookingCreate(BaseModel):
@@ -98,3 +108,6 @@ class BookingOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class BookingConfirm(BaseModel):
+    confirmed: bool

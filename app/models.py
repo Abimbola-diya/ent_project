@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Boolean, Enum
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Boolean, Enum, Float
 from sqlalchemy.orm import relationship
 from .database import Base
 from datetime import datetime
@@ -21,6 +21,7 @@ class User(Base):
     problems = relationship("Problem", back_populates="user")
     bookings = relationship("Booking", back_populates="user")
 
+
 class Problem(Base):
     __tablename__ = "problems"
     id = Column(Integer, primary_key=True, index=True)
@@ -36,6 +37,7 @@ class Problem(Base):
     bookings = relationship("Booking", back_populates="problem")
     troubleshoots = relationship("Troubleshoot", back_populates="problem", cascade="all, delete-orphan")
 
+
 class Step(Base):
     __tablename__ = "steps"
     id = Column(Integer, primary_key=True, index=True)
@@ -46,6 +48,7 @@ class Step(Base):
 
     problem = relationship("Problem", back_populates="steps")
 
+
 class Troubleshoot(Base):
     __tablename__ = "troubleshoots"
     id = Column(Integer, primary_key=True, index=True)
@@ -55,15 +58,21 @@ class Troubleshoot(Base):
 
     problem = relationship("Problem", back_populates="troubleshoots")
 
+
 class Engineer(Base):
     __tablename__ = "engineers"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
-    location = Column(String, nullable=True)
-    available_times = Column(Text)  # JSON string
+
+    # Precise location
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+
+    available_times = Column(Text)  # JSON string (e.g., ISO time slots)
 
     bookings = relationship("Booking", back_populates="engineer")
+
 
 class Booking(Base):
     __tablename__ = "bookings"
