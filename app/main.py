@@ -7,21 +7,24 @@ from .routers import auth, troubleshoot
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(
+    title="Laptop Repair Backend",
+    version="1.0.0",
+    description="API for AI-powered laptop troubleshooting and repair bookings"
+)
 
-# ---- CORS Configuration ----
+# Allow requests from specific origins (like React at localhost:3000)
 origins = [
-    "http://localhost:3000",            
-    "https://laptop-medic.vercel.app",   
-    "https://ent-project.onrender.com",   
+    "http://localhost:3000",   # frontend dev
+    "https://your-frontend.vercel.app"  # deployed frontend
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,     
+    allow_origins=origins,  # or ["*"] to allow all
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # or specify ["GET", "POST"]
+    allow_headers=["*"],  # or specify ["Content-Type", "Authorization"]
 )
 
 # ---- Routers ----
