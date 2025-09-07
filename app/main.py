@@ -13,6 +13,20 @@ app = FastAPI(
     description="API for AI-powered laptop troubleshooting and repair bookings"
 )
 
+# Allow requests from specific origins (like React at localhost:3000)
+origins = [
+    "http://localhost:3000",   # frontend dev
+    "https://your-frontend.vercel.app"  # deployed frontend
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # or ["*"] to allow all
+    allow_credentials=True,
+    allow_methods=["*"],  # or specify ["GET", "POST"]
+    allow_headers=["*"],  # or specify ["Content-Type", "Authorization"]
+)
+
 # Auth routes
 app.include_router(auth_routes.router)
 
