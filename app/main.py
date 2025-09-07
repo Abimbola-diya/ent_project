@@ -1,24 +1,34 @@
 from fastapi import FastAPI
-from .database import Base, engine
+from fastapi.middleware.cors import CORSMiddleware
+
 from . import models
-from .auth import routes as auth_routes
-from .routes import troubleshooting
+from .database import engine
+from .routers import auth, troubleshoot
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(
-    title="Laptop Repair Backend",
-    version="1.0.0",
-    description="API for AI-powered laptop troubleshooting and repair bookings"
+app = FastAPI()
+
+# ---- CORS Configuration ----
+origins = [
+    "http://localhost:3000",            
+    "https://laptop-medic.vercel.app",   
+    "https://ent-project.onrender.com",   
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,     
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Auth routes
-app.include_router(auth_routes.router)
+# ---- Routers ----
+app.include_router(auth.router)
+app.include_router(troubleshoot.router)
 
-# Troubleshooting routes
-app.include_router(troubleshooting.router)
 
 @app.get("/")
 def root():
-    return {"message": "Laptop Repair API is running"}
+    return {"message": "Laptop Repair API is live!"}
