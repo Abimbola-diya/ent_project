@@ -1,11 +1,12 @@
 from fastapi import FastAPI
+from .database import Base, engine
+from . import models
+from .auth import routes as auth_routes
+from .routes import troubleshooting
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import models
-from .database import engine
-from .routers import auth, troubleshoot
-
-models.Base.metadata.create_all(bind=engine)
+# Create tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Laptop Repair Backend",
@@ -13,25 +14,26 @@ app = FastAPI(
     description="API for AI-powered laptop troubleshooting and repair bookings"
 )
 
-# Allow requests from specific origins (like React at localhost:3000)
+# ---- CORS Configuration ----
 origins = [
-    "http://localhost:3000",   # frontend dev
-    "https://your-frontend.vercel.app"  # deployed frontend
+    "http://localhost:3000",              # local frontend dev
+    "https://laptop-medic.vercel.app",   # replace with actual deployed frontend URL
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # or ["*"] to allow all
+    allow_origins=origins,      # use ["*"] if you want to allow all for testing
     allow_credentials=True,
-    allow_methods=["*"],  # or specify ["GET", "POST"]
-    allow_headers=["*"],  # or specify ["Content-Type", "Authorization"]
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# ---- Routers ----
-app.include_router(auth.router)
-app.include_router(troubleshoot.router)
+# Auth routes
+app.include_router(auth_routes.router)
 
+# Troubleshooting routes
+app.include_router(troubleshooting.router)
 
 @app.get("/")
 def root():
-    return {"message": "Laptop Repair API is live!"}
+    return {"message": "Laptop Repair API is running"}
