@@ -193,3 +193,29 @@ def confirm_booking(
     db.refresh(booking)
 
     return booking
+
+# -------- User Problems ----------
+@router.get("/user/problems")
+def get_user_problems(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Get all problems (with descriptions) submitted by the authenticated user.
+    """
+    problems = db.query(models.Problem).filter(models.Problem.user_id == current_user.id).all()
+
+    if not problems:
+        return {"message": "No problems found for this user"}
+
+    return [
+        {
+            "id": problem.id,
+            "laptop_brand": problem.laptop_brand,
+            "laptop_model": problem.laptop_model,
+            "description": problem.description,
+            "created_at": problem.created_at,
+            "solved": problem.solved,
+        }
+        for problem in problems
+    ]
