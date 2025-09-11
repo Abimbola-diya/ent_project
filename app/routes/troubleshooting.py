@@ -134,12 +134,16 @@ def get_user_problems(
 
 # -------- Problem Endpoints ----------
 @router.post("/", response_model=schemas.ProblemOut)
-def create_problem(problem: schemas.ProblemCreate, db: Session = Depends(get_db)):
+def create_problem(
+    problem: schemas.ProblemCreate, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)   # <-- add this
+):
     """
     Creates a problem and generates AI steps.
     """
     db_problem = models.Problem(
-        # user_id=<set to current_user.id if you add auth above>,
+        user_id=current_user.id,   # <-- set user_id here
         laptop_brand=problem.laptop_brand,
         laptop_model=problem.laptop_model,
         description=problem.description,
