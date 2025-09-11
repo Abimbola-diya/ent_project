@@ -63,8 +63,7 @@ class Engineer(Base):
     __tablename__ = "engineers"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
-    email = Column(String, unique=True, nullable=False)
-    rate_per_hour = Column(Integer, nullable=False)   # in Naira
+    email = Column(String, unique=True, nullable=False)   # in Naira
     service_time = Column(String, nullable=True)      # e.g. "9AM - 5PM"
     picture_url = Column(String, nullable=True)       # link to engineer photo
 
