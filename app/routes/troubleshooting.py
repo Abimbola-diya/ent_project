@@ -22,6 +22,18 @@ def haversine_distance(lat1, lon1, lat2, lon2) -> float:
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
     return R * c
 
+@router.post("/engineers", response_model=schemas.Engineer)
+def create_engineer(engineer: schemas.EngineerCreate, db: Session = Depends(get_db)):
+    new_engineer = models.Engineer(
+        name=engineer.name,
+        email=engineer.email,
+        service_time=engineer.service_time,
+        picture_url=engineer.picture_url
+    )
+    db.add(new_engineer)
+    db.commit()
+    db.refresh(new_engineer)
+    return new_engineer
 
 # -------- Engineer Discovery ----------
 @router.get("/engineers", response_model=list[schemas.EngineerOut])

@@ -76,17 +76,23 @@ class TroubleshootOut(BaseModel):
         from_attributes = True
 
 
+    
+class EngineerBase(BaseModel):
+    name: str
+    email: str
+    service_time: str
+    picture_url: str
+
+class EngineerCreate(EngineerBase):
+    pass
+
+
 # ---------- Engineers ----------
 class EngineerOut(BaseModel):
     id: int
-    name: str
-    email: str
-    rate_per_hour: int
-    service_time: Optional[str]
-    picture_url: Optional[str]
-
+ 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class UserLocation(BaseModel):
     latitude: float
