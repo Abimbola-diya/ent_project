@@ -110,35 +110,13 @@ def get_problem_with_steps(problem_id: int, db: Session = Depends(get_db)):
 
 
 # -------- Engineer Discovery ----------
-@router.post("/engineers/nearby")
-def get_nearby_engineers(
-    location: schemas.UserLocation,
-    db: Session = Depends(get_db),
-    radius_km: float = Query(50, gt=0, description="Search radius in kilometers")
-):
+@router.get("/engineers", response_model=list[schemas.EngineerOut])
+def list_engineers(db: Session = Depends(get_db)):
     """
-    Returns engineers within `radius_km` of the user's (lat, lon),
-    sorted by distance ascending.
+    Returns all available engineers with their profile info.
     """
     engineers = db.query(models.Engineer).all()
-    results = []
-
-    for eng in engineers:
-        if eng.latitude is None or eng.longitude is None:
-            continue
-        dist = haversine_distance(location.latitude, location.longitude, eng.latitude, eng.longitude)
-        if dist <= radius_km:
-            results.append({
-                "id": eng.id,
-                "name": eng.name,
-                "email": eng.email,
-                "latitude": eng.latitude,
-                "longitude": eng.longitude,
-                "distance_km": round(dist, 2)
-            })
-
-    results.sort(key=lambda e: e["distance_km"])
-    return results
+    return engineers
 
 
 # -------- Booking ----------
@@ -172,14 +150,10 @@ def confirm_booking(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    """
-    Only ENGINEER (assigned to this booking) or ADMIN can confirm a booking.
-    """
     booking = db.query(models.Booking).filter(models.Booking.id == booking_id).first()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
 
-    # Role-based access
     if current_user.role not in (models.UserRole.ENGINEER, models.UserRole.ADMIN):
         raise HTTPException(status_code=403, detail="Not authorized to confirm bookings")
 
@@ -188,10 +162,20 @@ def confirm_booking(
         if engineer_record is None or engineer_record.id != booking.engineer_id:
             raise HTTPException(status_code=403, detail="You can only confirm your own bookings")
 
+    # Update booking
     booking.confirmed = confirm_data.confirmed
+
+    # Optionally, create a message entry (so user sees notification)
+    if confirm_data.message:
+        db_message = models.Troubleshoot(
+            problem_id=booking.problem_id,
+            message=f"Engineer response: {confirm_data.message}",
+            created_at=datetime.utcnow()
+        )
+        db.add(db_message)
+
     db.commit()
     db.refresh(booking)
-
     return booking
 
 # -------- User Problems ----------

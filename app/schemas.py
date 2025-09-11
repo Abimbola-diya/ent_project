@@ -81,9 +81,9 @@ class EngineerOut(BaseModel):
     id: int
     name: str
     email: str
-    latitude: Optional[float]
-    longitude: Optional[float]
-    available_times: Optional[str]  # JSON string
+    rate_per_hour: int
+    service_time: Optional[str]
+    picture_url: Optional[str]
 
     class Config:
         from_attributes = True
@@ -111,3 +111,4 @@ class BookingOut(BaseModel):
 
 class BookingConfirm(BaseModel):
     confirmed: bool
+    message:Optional[str]=None

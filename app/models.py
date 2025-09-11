@@ -64,15 +64,11 @@ class Engineer(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
-
-    # Precise location
-    latitude = Column(Float, nullable=True)
-    longitude = Column(Float, nullable=True)
-
-    available_times = Column(Text)  # JSON string (e.g., ISO time slots)
+    rate_per_hour = Column(Integer, nullable=False)   # in Naira
+    service_time = Column(String, nullable=True)      # e.g. "9AM - 5PM"
+    picture_url = Column(String, nullable=True)       # link to engineer photo
 
     bookings = relationship("Booking", back_populates="engineer")
-
 
 class Booking(Base):
     __tablename__ = "bookings"
