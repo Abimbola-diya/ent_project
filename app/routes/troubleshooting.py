@@ -23,92 +23,6 @@ def haversine_distance(lat1, lon1, lat2, lon2) -> float:
     return R * c
 
 
-# -------- Problem Endpoints ----------
-@router.post("/", response_model=schemas.ProblemOut)
-def create_problem(problem: schemas.ProblemCreate, db: Session = Depends(get_db)):
-    """
-    Creates a problem and generates the AI steps.
-    If you want to associate the problem to an authenticated user,
-    add current_user: models.User = Depends(get_current_user)
-    and set user_id=current_user.id below.
-    """
-    db_problem = models.Problem(
-        # user_id=<set to current_user.id if you add auth above>,
-        laptop_brand=problem.laptop_brand,
-        laptop_model=problem.laptop_model,
-        description=problem.description,
-        created_at=datetime.utcnow()
-    )
-    db.add(db_problem)
-    db.commit()
-    db.refresh(db_problem)
-
-    steps = generate_steps(problem.laptop_brand, problem.laptop_model, problem.description)
-    for idx, step_text in enumerate(steps, start=1):
-        db_step = models.Step(
-            problem_id=db_problem.id,
-            step_number=idx,
-            instruction=step_text,
-            completed=False
-        )
-        db.add(db_step)
-    db.commit()
-
-    db.refresh(db_problem)
-    return db_problem
-
-
-@router.get("/{problem_id}", response_model=schemas.ProblemOut)
-def get_problem(problem_id: int, db: Session = Depends(get_db)):
-    problem = db.query(models.Problem).filter(models.Problem.id == problem_id).first()
-    if not problem:
-        raise HTTPException(status_code=404, detail="Problem not found")
-    return problem
-
-
-@router.patch("/{problem_id}/step/{step_id}")
-def mark_step_completed(problem_id: int, step_id: int, db: Session = Depends(get_db)):
-    step = db.query(models.Step).filter(
-        models.Step.id == step_id,
-        models.Step.problem_id == problem_id
-    ).first()
-
-    if not step:
-        raise HTTPException(status_code=404, detail="Step not found")
-
-    step.completed = True
-    db.commit()
-    return {"message": "Step marked as completed"}
-
-
-@router.get("/problems/{problem_id}")
-def get_problem_with_steps(problem_id: int, db: Session = Depends(get_db)):
-    """
-    Returns problem details and all steps.
-    """
-    problem = db.query(models.Problem).filter(models.Problem.id == problem_id).first()
-    if not problem:
-        raise HTTPException(status_code=404, detail="Problem not found")
-    
-    return {
-        "id": problem.id,
-        "laptop_brand": problem.laptop_brand,
-        "laptop_model": problem.laptop_model,
-        "description": problem.description,
-        "created_at": problem.created_at,
-        "solved": problem.solved,
-        "steps": [
-            {
-                "id": step.id,
-                "step_number": step.step_number,
-                "instruction": step.instruction,
-                "completed": step.completed
-            }
-            for step in problem.steps
-        ]
-    }
-
-
 # -------- Engineer Discovery ----------
 @router.get("/engineers", response_model=list[schemas.EngineerOut])
 def list_engineers(db: Session = Depends(get_db)):
@@ -150,6 +64,9 @@ def confirm_booking(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
+    """
+    Engineers (or Admins) can confirm a booking.
+    """
     booking = db.query(models.Booking).filter(models.Booking.id == booking_id).first()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
@@ -162,10 +79,8 @@ def confirm_booking(
         if engineer_record is None or engineer_record.id != booking.engineer_id:
             raise HTTPException(status_code=403, detail="You can only confirm your own bookings")
 
-    # Update booking
     booking.confirmed = confirm_data.confirmed
 
-    # Optionally, create a message entry (so user sees notification)
     if confirm_data.message:
         db_message = models.Troubleshoot(
             problem_id=booking.problem_id,
@@ -178,6 +93,7 @@ def confirm_booking(
     db.refresh(booking)
     return booking
 
+
 # -------- User Problems ----------
 @router.get("/user/problems")
 def get_user_problems(
@@ -185,10 +101,9 @@ def get_user_problems(
     current_user: models.User = Depends(get_current_user)
 ):
     """
-    Get all problems (with descriptions) submitted by the authenticated user.
+    Get all problems submitted by the authenticated user.
     """
     problems = db.query(models.Problem).filter(models.Problem.user_id == current_user.id).all()
-
     if not problems:
         return {"message": "No problems found for this user"}
 
@@ -203,3 +118,92 @@ def get_user_problems(
         }
         for problem in problems
     ]
+
+
+# -------- Problem Endpoints ----------
+@router.post("/", response_model=schemas.ProblemOut)
+def create_problem(problem: schemas.ProblemCreate, db: Session = Depends(get_db)):
+    """
+    Creates a problem and generates AI steps.
+    """
+    db_problem = models.Problem(
+        # user_id=<set to current_user.id if you add auth above>,
+        laptop_brand=problem.laptop_brand,
+        laptop_model=problem.laptop_model,
+        description=problem.description,
+        created_at=datetime.utcnow()
+    )
+    db.add(db_problem)
+    db.commit()
+    db.refresh(db_problem)
+
+    steps = generate_steps(problem.laptop_brand, problem.laptop_model, problem.description)
+    for idx, step_text in enumerate(steps, start=1):
+        db_step = models.Step(
+            problem_id=db_problem.id,
+            step_number=idx,
+            instruction=step_text,
+            completed=False
+        )
+        db.add(db_step)
+    db.commit()
+
+    db.refresh(db_problem)
+    return db_problem
+
+
+@router.get("/problems/{problem_id}")
+def get_problem_with_steps(problem_id: int, db: Session = Depends(get_db)):
+    """
+    Returns problem details and all steps.
+    """
+    problem = db.query(models.Problem).filter(models.Problem.id == problem_id).first()
+    if not problem:
+        raise HTTPException(status_code=404, detail="Problem not found")
+    
+    return {
+        "id": problem.id,
+        "laptop_brand": problem.laptop_brand,
+        "laptop_model": problem.laptop_model,
+        "description": problem.description,
+        "created_at": problem.created_at,
+        "solved": problem.solved,
+        "steps": [
+            {
+                "id": step.id,
+                "step_number": step.step_number,
+                "instruction": step.instruction,
+                "completed": step.completed
+            }
+            for step in problem.steps
+        ]
+    }
+
+
+@router.get("/{problem_id}", response_model=schemas.ProblemOut)
+def get_problem(problem_id: int, db: Session = Depends(get_db)):
+    """
+    Fetch a problem by its ID.
+    """
+    problem = db.query(models.Problem).filter(models.Problem.id == problem_id).first()
+    if not problem:
+        raise HTTPException(status_code=404, detail="Problem not found")
+    return problem
+
+
+@router.patch("/{problem_id}/step/{step_id}")
+def mark_step_completed(problem_id: int, step_id: int, db: Session = Depends(get_db)):
+    """
+    Mark a specific step as completed.
+    """
+    step = db.query(models.Step).filter(
+        models.Step.id == step_id,
+        models.Step.problem_id == problem_id
+    ).first()
+
+    if not step:
+        raise HTTPException(status_code=404, detail="Step not found")
+
+    step.completed = True
+    db.commit()
+    return {"message": "Step marked as completed"}
