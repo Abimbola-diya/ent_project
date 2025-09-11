@@ -90,9 +90,13 @@ class EngineerCreate(EngineerBase):
 # ---------- Engineers ----------
 class EngineerOut(BaseModel):
     id: int
- 
+    name: str
+    email: str
+    service_time: Optional[str]
+    picture_url: Optional[str]
+
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class UserLocation(BaseModel):
     latitude: float
