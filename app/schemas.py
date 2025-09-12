@@ -82,6 +82,7 @@ class EngineerBase(BaseModel):
     email: str
     service_time: str
     picture_url: str
+    location: str # Added
 
 class EngineerCreate(EngineerBase):
     pass
@@ -94,6 +95,7 @@ class EngineerOut(BaseModel):
     email: str
     service_time: Optional[str]
     picture_url: Optional[str]
+    location: str # Added
 
     class Config:
         from_attributes = True
