@@ -66,6 +66,7 @@ class Engineer(Base):
     email = Column(String, unique=True, nullable=False)   # in Naira
     service_time = Column(String, nullable=True)      # e.g. "9AM - 5PM"
     picture_url = Column(String, nullable=True)       # link to engineer photo
+    location = Column(String, nullable=True) #added
 
     bookings = relationship("Booking", back_populates="engineer")
 
