@@ -28,7 +28,7 @@ def create_engineer(engineer: schemas.EngineerCreate, db: Session = Depends(get_
         name=engineer.name,
         email=engineer.email,
         service_time=engineer.service_time,
-        picture_url=engineer.picture_url
+        picture_url=engineer.picture_url,
         location=engineer.location # Added
     )
     db.add(new_engineer)
