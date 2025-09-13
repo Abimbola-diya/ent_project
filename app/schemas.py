@@ -80,8 +80,8 @@ class TroubleshootOut(BaseModel):
 class EngineerBase(BaseModel):
     name: str
     email: str
-    service_time: str
-    picture_url: str
+    service_time: Optional[str]
+    picture_url: Optional[str]
     location: str # Added
 
 class EngineerCreate(EngineerBase):
